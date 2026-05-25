@@ -1,7 +1,41 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import { VitePWA } from 'vite-plugin-pwa'
 
-// https://vite.dev/config/
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react(),
+    VitePWA({
+      registerType: 'autoUpdate',
+      includeAssets: ['favicon.ico', 'icon-192.svg', 'icon-512.svg'],
+      manifest: {
+        name: 'Transfera',
+        short_name: 'Transfera',
+        description: 'Equalize o estoque físico da sua loja',
+        theme_color: '#185FA5',
+        background_color: '#ffffff',
+        display: 'standalone',
+        orientation: 'portrait',
+        scope: '/transfera/',
+        start_url: '/transfera/',
+        icons: [
+          { src: 'icon-192.svg', sizes: '192x192', type: 'image/svg+xml' },
+          { src: 'icon-512.svg', sizes: '512x512', type: 'image/svg+xml' }
+        ]
+      }
+    })
+  ],
+  base: '/transfera/',
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+          'xlsx-vendor': ['xlsx'],
+          'pdf-vendor': ['jspdf', 'html2canvas'],
+          'icons-vendor': ['@tabler/icons-react'],
+        }
+      }
+    }
+  }
 })

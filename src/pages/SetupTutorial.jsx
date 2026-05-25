@@ -6,26 +6,26 @@ const tutorials = {
   android: { label: 'Android', steps: [
     { title: 'Abra o Chrome', desc: 'e acesse o link do Transfera' },
     { title: 'Toque no menu', desc: '(3 pontos no canto superior direito)' },
-    { title: 'Toque em Instalar app', desc: 'ou Adicionar a tela inicial' },
-    { title: 'Confirme', desc: 'o icone aparecera na sua tela inicial' },
+    { title: 'Toque em "Instalar app"', desc: 'ou "Adicionar à tela inicial"' },
+    { title: 'Confirme', desc: '— o ícone aparecerá na sua tela inicial' },
   ]},
   iphone: { label: 'iPhone', steps: [
     { title: 'Abra o Safari', desc: 'e acesse o link do Transfera' },
-    { title: 'Toque no botao compartilhar', desc: 'icone de quadrado com seta para cima' },
-    { title: 'Role a lista e toque em', desc: 'Adicionar a Tela de Inicio' },
-    { title: 'Toque em Adicionar', desc: 'o icone aparecera na sua tela inicial' },
+    { title: 'Toque no botão compartilhar', desc: '(ícone de quadrado com seta para cima)' },
+    { title: 'Role a lista e toque em', desc: '"Adicionar à Tela de Início"' },
+    { title: 'Toque em "Adicionar"', desc: '— o ícone aparecerá na sua tela inicial' },
   ]},
   windows: { label: 'Windows', steps: [
     { title: 'Abra o Chrome ou Edge', desc: 'e acesse o link do Transfera' },
-    { title: 'Clique no icone de instalar', desc: 'na barra de enderecos' },
-    { title: 'Clique em Instalar', desc: 'na janela que aparecer' },
-    { title: 'Pronto', desc: 'o app aparecera no menu iniciar' },
+    { title: 'Clique no ícone de instalar', desc: 'na barra de endereços' },
+    { title: 'Clique em "Instalar"', desc: 'na janela que aparecer' },
+    { title: 'Pronto', desc: '— o app aparecerá no menu iniciar' },
   ]},
   mac: { label: 'Mac', steps: [
     { title: 'Abra o Chrome ou Safari', desc: 'e acesse o link do Transfera' },
-    { title: 'No Chrome', desc: 'clique no icone de instalar na barra de enderecos' },
-    { title: 'No Safari', desc: 'clique em Arquivo e Adicionar ao Dock' },
-    { title: 'Confirme', desc: 'o app aparecera no Launchpad' },
+    { title: 'No Chrome', desc: 'clique no ícone de instalar na barra de endereços' },
+    { title: 'No Safari', desc: 'clique em Arquivo → Adicionar ao Dock' },
+    { title: 'Confirme', desc: '— o app aparecerá no Launchpad' },
   ]},
 }
 export default function SetupTutorial() {
@@ -43,7 +43,7 @@ export default function SetupTutorial() {
     <div className="page">
       <div className="page-header">
         <button className="back-btn" onClick={() => navigate('/setup/storages')}><IconArrowLeft size={16} /> Voltar</button>
-        <div className="page-title">Instalacao</div>
+        <div className="page-title">Instalação</div>
         <div style={{ width: 60 }} />
       </div>
       <div className="step-indicator">
@@ -51,7 +51,7 @@ export default function SetupTutorial() {
         <div className="step-dot active" />
         <div className="step-dot" />
       </div>
-      <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 14, lineHeight: 1.5 }}>Selecione o dispositivo que voce esta usando agora.</p>
+      <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 14, lineHeight: 1.5 }}>Selecione o dispositivo que você está usando agora.</p>
       <div className="device-grid">
         {devices.map(d => (
           <div key={d.key} className={"device-card " + (selected === d.key ? 'active' : '')} onClick={() => setSelected(d.key)}>
@@ -68,7 +68,7 @@ export default function SetupTutorial() {
         ))}
       </div>
       <div className="mt-auto">
-        <button className="btn-primary" onClick={finish}>Concluir configuracao</button>
+        <button className="btn-primary" onClick={finish}>Concluir configuração</button>
       </div>
     </div>
   )

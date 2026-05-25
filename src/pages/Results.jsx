@@ -14,15 +14,15 @@ export default function Results() {
   if (!results) return <div className="page" style={{ alignItems: 'center', justifyContent: 'center' }}><p style={{ color: 'var(--text-secondary)' }}>Nenhum resultado disponivel.</p></div>
   const { grouped } = results
   const totalTransfer = grouped.reduce((sum, g) => sum + (g.total > 0 ? g.total : 0), 0)
-  const totalExcess = grouped.reduce((sum, g) => sum + (g.total < 0 ? Math.abs(g.total) : 0), 0)
+  const totalExcess = grouped.reduce((sum, g) => sum + g.items.filter(i => i.replenish < 0).reduce((s, i) => s + Math.abs(i.replenish), 0), 0)
   const totalFem = grouped.filter(g => ['FEMININA','KIDS','UNISSEX'].includes(g.gender)).reduce((sum, g) => sum + (g.total > 0 ? g.total : 0), 0)
   const totalMasc = grouped.filter(g => g.gender === 'MASCULINA').reduce((sum, g) => sum + (g.total > 0 ? g.total : 0), 0)
   const articles = [...new Set(grouped.map(g => g.article))]
   const genders = [...new Set(grouped.map(g => g.gender))]
   const toggleGroup = (key) => setExpandedGroups(prev => ({ ...prev, [key]: !prev[key] }))
   const filtered = grouped.filter(g => {
-    if (activeFilter === 'transferir' && g.total <= 0) return false
-    if (activeFilter === 'excesso' && g.total >= 0) return false
+    if (activeFilter === 'transferir' && !g.items.some(i => i.replenish > 0)) return false
+    if (activeFilter === 'excesso' && !g.items.some(i => i.replenish < 0)) return false
     if (activeGender && g.gender !== activeGender) return false
     if (activeArticle && g.article !== activeArticle) return false
     if (search) {
@@ -87,7 +87,12 @@ export default function Results() {
             </div>
             {expandedGroups[group.key] && (
               <div className="result-item-body">
-                {group.items.slice(0, 20).map((item, i) => (
+                {(activeFilter === 'excesso'
+                  ? group.items.filter(i => i.replenish < 0)
+                  : activeFilter === 'transferir'
+                  ? group.items.filter(i => i.replenish > 0)
+                  : group.items
+                ).slice(0, 20).map((item, i) => (
                   <div className="sku-row" key={i}>
                     <span className="sku-name">{item.description}</span>
                     <span className={"sku-qty " + (item.replenish < 0 ? 'excess' : '')}>{item.replenish > 0 ? '+' : ''}{item.replenish}</span>

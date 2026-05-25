@@ -16,7 +16,7 @@ export default function SetupStorages() {
     <div className="page">
       <div className="page-header">
         <button className="back-btn" onClick={() => navigate('/')}><IconArrowLeft size={16} /> Voltar</button>
-        <div className="page-title">Estoques fisicos</div>
+        <div className="page-title">Estoques físicos</div>
         <div style={{ width: 60 }} />
       </div>
       <div className="step-indicator">
@@ -24,7 +24,7 @@ export default function SetupStorages() {
         <div className="step-dot" />
         <div className="step-dot" />
       </div>
-      <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 16, lineHeight: 1.5 }}>Confirme ou renomeie os estoques. Ative apenas os que existem na sua operacao.</p>
+      <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 16, lineHeight: 1.5 }}>Confirme ou renomeie os estoques. Ative apenas os que existem na sua operação.</p>
       {storages.map(storage => (
         <div className="storage-item" key={storage.id}>
           {storage.id === 1 ? <IconBuildingStore size={18} color="#185FA5" /> : <IconBox size={18} color={storage.active ? '#185FA5' : '#999'} />}
@@ -33,7 +33,7 @@ export default function SetupStorages() {
           ) : (
             <span className="storage-name">{storage.name}</span>
           )}
-          {storage.isDefault && <span className="badge-default">padrao</span>}
+          {storage.isDefault && <span className="badge-default">padrão</span>}
           {editingId === storage.id ? (
             <button onClick={() => saveEdit(storage.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#185FA5' }}><IconCheck size={16} /></button>
           ) : (
@@ -55,7 +55,7 @@ export default function SetupStorages() {
         <button className="add-storage-btn" onClick={() => setShowAddInput(true)}><IconPlus size={16} /> Adicionar estoque</button>
       )}
       <div className="mt-auto">
-        <button className="btn-primary" onClick={() => navigate('/setup/tutorial')}>Proximo <IconArrowRight size={16} /></button>
+        <button className="btn-primary" onClick={() => navigate('/setup/tutorial')}>Próximo <IconArrowRight size={16} /></button>
       </div>
     </div>
   )

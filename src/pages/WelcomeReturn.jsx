@@ -25,16 +25,16 @@ export default function WelcomeReturn() {
       {showTutorial && (
         <div className="info-banner">
           <IconInfoCircle size={18} color="#185FA5" style={{ flexShrink: 0, marginTop: 1 }} />
-          <div className="info-banner-text">Quer rever o tutorial de uso antes de comecar?</div>
+          <div className="info-banner-text">Quer rever o tutorial de uso antes de começar?</div>
         </div>
       )}
       <div className="checkbox-row">
         <input type="checkbox" id="dontShow" checked={dontShow} onChange={e => setDontShow(e.target.checked)} />
-        <label htmlFor="dontShow">Nao mostrar novamente</label>
+        <label htmlFor="dontShow">Não mostrar novamente</label>
       </div>
       <div className="mt-auto">
         <button className="btn-primary" onClick={handleStart}>
-          Iniciar nova reposicao <IconArrowRight size={16} />
+          Iniciar nova reposição <IconArrowRight size={16} />
         </button>
         {showTutorial && (
           <button className="btn-secondary" onClick={handleTutorial}>Ver tutorial de uso</button>

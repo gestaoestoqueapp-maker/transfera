@@ -4,7 +4,10 @@ export function parseSystemData(rawData) {
 
   for (let i = 0; i < rawData.length; i++) {
     const row = rawData[i]
-    if (row && row[0] && String(row[0]).toLowerCase().includes('codigo')) {
+    if (!row) continue
+    const first = String(row[0] || '').trim().toLowerCase()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    if (first === 'codigo') {
       headerRow = i
       break
     }
@@ -17,7 +20,7 @@ export function parseSystemData(rawData) {
     if (!row || !row[0]) continue
     const code = String(row[0]).trim()
     const saldo = Number(row[5]) || 0
-    if (!isNaN(Number(code)) && saldo >= 0) {
+    if (!isNaN(Number(code)) && Number(code) > 0 && saldo >= 0) {
       products.push({ code, saldo })
     }
   }

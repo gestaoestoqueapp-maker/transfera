@@ -37,20 +37,18 @@ export default function Results() {
   const toggleGroup = (key) => setExpandedGroups(prev => ({ ...prev, [key]: !prev[key] }))
   const toggleProduct = (key) => setExpandedProducts(prev => ({ ...prev, [key]: !prev[key] }))
 
-  const filtered = grouped.filter(g => {
-    if (activeFilter === 'transferir' && !g.items.some(p => p.items.some(i => i.replenish > 0))) return false
-    if (activeFilter === 'excesso' && !g.items.some(p => p.items.some(i => i.replenish < 0))) return false
-    if (activeGender && g.gender !== activeGender) return false
-    if (activeArticle && g.article !== activeArticle) return false
-    if (search) {
-      const s = search.toLowerCase()
-      if (!g.items.some(p =>
-        p.name.toLowerCase().includes(s) ||
-        p.items.some(i => i.description.toLowerCase().includes(s))
-      ) && !g.article.toLowerCase().includes(s)) return false
-    }
-    return true
-  })
+  const getFilteredProducts = (group) => {
+    return group.items.filter(product => {
+      const productItems = getProductItems(product)
+      if (productItems.length === 0) return false
+      if (search) {
+        const s = search.toLowerCase()
+        return product.name.toLowerCase().includes(s) ||
+          product.items.some(i => i.description.toLowerCase().includes(s))
+      }
+      return true
+    })
+  }
 
   const getProductItems = (product) => {
     if (activeFilter === 'excesso') return product.items.filter(i => i.replenish < 0)
@@ -59,9 +57,37 @@ export default function Results() {
   }
 
   const getProductTotal = (product) => {
-    const items = getProductItems(product)
-    return items.reduce((s, i) => s + i.replenish, 0)
+    return getProductItems(product).reduce((s, i) => s + i.replenish, 0)
   }
+
+  const getGroupDisplayTotal = (group) => {
+    const products = search ? getFilteredProducts(group) : group.items
+    if (activeFilter === 'excesso') {
+      return products.reduce((sum, p) =>
+        sum + p.items.filter(i => i.replenish < 0).reduce((s, i) => s + i.replenish, 0), 0)
+    }
+    if (activeFilter === 'transferir') {
+      return products.reduce((sum, p) =>
+        sum + p.items.filter(i => i.replenish > 0).reduce((s, i) => s + i.replenish, 0), 0)
+    }
+    return products.reduce((sum, p) => sum + p.total, 0)
+  }
+
+  const filtered = grouped.filter(g => {
+    if (activeFilter === 'transferir' && !g.items.some(p => p.items.some(i => i.replenish > 0))) return false
+    if (activeFilter === 'excesso' && !g.items.some(p => p.items.some(i => i.replenish < 0))) return false
+    if (activeGender && g.gender !== activeGender) return false
+    if (activeArticle && g.article !== activeArticle) return false
+    if (search) {
+      const s = search.toLowerCase()
+      const hasMatch = g.items.some(p =>
+        p.name.toLowerCase().includes(s) ||
+        p.items.some(i => i.description.toLowerCase().includes(s))
+      )
+      if (!hasMatch && !g.article.toLowerCase().includes(s)) return false
+    }
+    return true
+  })
 
   return (
     <div className="page">
@@ -89,7 +115,13 @@ export default function Results() {
       <div className="search-row">
         <div style={{ position: 'relative', flex: 1 }}>
           <IconSearch size={14} color="#999" style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)' }} />
-          <input className="search-input" style={{ paddingLeft: 30 }} placeholder="Buscar produto..." value={search} onChange={e => setSearch(e.target.value)} />
+          <input
+            className="search-input"
+            style={{ paddingLeft: 30 }}
+            placeholder="Buscar produto..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+          />
         </div>
         <button onClick={() => setShowFilters(!showFilters)} style={{ width: 36, height: 36, borderRadius: 8, border: '1px solid var(--gray-border)', background: showFilters ? 'var(--blue-light)' : 'var(--gray-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
           <IconAdjustmentsHorizontal size={16} color={showFilters ? '#185FA5' : '#999'} />
@@ -119,69 +151,76 @@ export default function Results() {
 
       <div style={{ flex: 1 }}>
         {filtered.length === 0 ? (
-          <p style={{ fontSize: 13, color: 'var(--text-tertiary)', textAlign: 'center', padding: '20px 0' }}>Nenhum resultado para os filtros selecionados.</p>
-        ) : filtered.map(group => (
-          <div className="result-item" key={group.key}>
-            <div className="result-item-header" onClick={() => toggleGroup(group.key)}>
-              <div>
-                <div className="result-item-name">
-                  {group.article.charAt(0) + group.article.slice(1).toLowerCase()} {group.gender.charAt(0) + group.gender.slice(1).toLowerCase()}
+          <p style={{ fontSize: 13, color: 'var(--text-tertiary)', textAlign: 'center', padding: '20px 0' }}>
+            Nenhum resultado para os filtros selecionados.
+          </p>
+        ) : filtered.map(group => {
+          const displayTotal = getGroupDisplayTotal(group)
+          const filteredProducts = getFilteredProducts(group)
+
+          return (
+            <div className="result-item" key={group.key}>
+              <div className="result-item-header" onClick={() => toggleGroup(group.key)}>
+                <div>
+                  <div className="result-item-name">
+                    {group.article.charAt(0) + group.article.slice(1).toLowerCase()} {group.gender.charAt(0) + group.gender.slice(1).toLowerCase()}
+                  </div>
+                  <div className="result-item-sub">{filteredProducts.length} produtos</div>
                 </div>
-                <div className="result-item-sub">{group.items.length} produtos</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span className={'result-item-qty ' + (displayTotal < 0 ? 'excess' : '')}>
+                    {displayTotal > 0 ? '+' : ''}{displayTotal.toLocaleString('pt-BR')}
+                  </span>
+                  {expandedGroups[group.key] ? <IconChevronUp size={16} color="#999" /> : <IconChevronDown size={16} color="#999" />}
+                </div>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <span className={'result-item-qty ' + (group.total < 0 ? 'excess' : '')}>
-                  {group.total > 0 ? '+' : ''}{group.total.toLocaleString('pt-BR')}
-                </span>
-                {expandedGroups[group.key] ? <IconChevronUp size={16} color="#999" /> : <IconChevronDown size={16} color="#999" />}
-              </div>
-            </div>
 
-            {expandedGroups[group.key] && (
-              <div className="result-item-body">
-                {group.items.map(product => {
-                  const productTotal = getProductTotal(product)
-                  const productItems = getProductItems(product)
-                  if (productItems.length === 0) return null
-                  const prodKey = group.key + '|' + product.key
+              {expandedGroups[group.key] && (
+                <div className="result-item-body">
+                  {filteredProducts.map(product => {
+                    const productTotal = getProductTotal(product)
+                    const productItems = getProductItems(product)
+                    if (productItems.length === 0) return null
+                    const prodKey = group.key + '|' + product.key
 
-                  return (
-                    <div key={product.key} style={{ marginBottom: 4 }}>
-                      <div
-                        onClick={() => toggleProduct(prodKey)}
-                        style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 8px', background: '#f0f4f8', borderRadius: 6, cursor: 'pointer' }}
-                      >
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                          {expandedProducts[prodKey]
-                            ? <IconChevronUp size={13} color="#888" />
-                            : <IconChevronDown size={13} color="#888" />
-                          }
-                          <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-primary)' }}>{product.name}</span>
+                    return (
+                      <div key={product.key} style={{ marginBottom: 4 }}>
+                        <div
+                          onClick={() => toggleProduct(prodKey)}
+                          style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 8px', background: '#f0f4f8', borderRadius: 6, cursor: 'pointer' }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                            {expandedProducts[prodKey]
+                              ? <IconChevronUp size={13} color="#888" />
+                              : <IconChevronDown size={13} color="#888" />
+                            }
+                            <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-primary)' }}>{product.name}</span>
+                          </div>
+                          <span style={{ fontSize: 12, fontWeight: 500, color: productTotal < 0 ? 'var(--amber-dark)' : '#185FA5' }}>
+                            {productTotal > 0 ? '+' : ''}{productTotal}
+                          </span>
                         </div>
-                        <span style={{ fontSize: 12, fontWeight: 500, color: productTotal < 0 ? 'var(--amber-dark)' : '#185FA5' }}>
-                          {productTotal > 0 ? '+' : ''}{productTotal}
-                        </span>
+
+                        {expandedProducts[prodKey] && (
+                          <div style={{ paddingLeft: 16 }}>
+                            {productItems.map((item, i) => (
+                              <div className="sku-row" key={i}>
+                                <span className="sku-name">{item.description}</span>
+                                <span className={'sku-qty ' + (item.replenish < 0 ? 'excess' : '')}>
+                                  {item.replenish > 0 ? '+' : ''}{item.replenish}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
-
-                      {expandedProducts[prodKey] && (
-                        <div style={{ paddingLeft: 16 }}>
-                          {productItems.map((item, i) => (
-                            <div className="sku-row" key={i}>
-                              <span className="sku-name">{item.description}</span>
-                              <span className={'sku-qty ' + (item.replenish < 0 ? 'excess' : '')}>
-                                {item.replenish > 0 ? '+' : ''}{item.replenish}
-                              </span>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  )
-                })}
-              </div>
-            )}
-          </div>
-        ))}
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+          )
+        })}
       </div>
 
       <div className="mt-auto" style={{ paddingTop: 12 }}>

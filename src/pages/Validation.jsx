@@ -3,19 +3,34 @@ import { useNavigate } from 'react-router-dom'
 import { IconArrowLeft, IconArrowRight, IconAlertTriangle, IconCircleCheck } from '@tabler/icons-react'
 import { useApp } from '../context/AppContext'
 import { parseBaseData, parseInventoryTxt, parseInventoryExcel } from '../utils/processData'
+
 export default function Validation() {
   const navigate = useNavigate()
-  const { systemData, inventoryData, storages, baseData, setBaseData, setValidationErrors, setIgnoredItems } = useApp()
+  const {
+    systemData, inventoryData, storages,
+    baseData, setBaseData,
+    setValidationErrors, setIgnoredItems,
+    setAvailableArticles, setAvailableGenders,
+  } = useApp()
+
   const [errors, setErrors] = useState([])
   const [showAll, setShowAll] = useState(false)
   const [processed, setProcessed] = useState(false)
+
   useEffect(() => {
     const run = () => {
       const base = Array.isArray(baseData) ? parseBaseData(baseData) : baseData
       if (Array.isArray(baseData)) setBaseData(base)
+
+      const articles = [...new Set(Object.values(base).map(p => p.article).filter(Boolean))]
+      const genders = [...new Set(Object.values(base).map(p => p.gender).filter(Boolean))]
+      setAvailableArticles(articles.sort())
+      setAvailableGenders(genders.sort())
+
       const allErrors = []
       const activeStorages = storages.filter(s => s.active)
       const uploadStorages = activeStorages.slice(0, -1)
+
       uploadStorages.forEach(storage => {
         const data = inventoryData[storage.id]
         if (!data) return
@@ -30,15 +45,23 @@ export default function Validation() {
           })
         }
       })
+
       setErrors(allErrors)
       setValidationErrors(allErrors)
       setProcessed(true)
     }
     run()
   }, [])
+
   const handleIgnoreAll = () => { setIgnoredItems(errors); navigate('/coverage') }
   const visibleErrors = showAll ? errors : errors.slice(0, 10)
-  if (!processed) return <div className="page" style={{ alignItems: 'center', justifyContent: 'center' }}><p style={{ color: 'var(--text-secondary)' }}>Validando arquivos...</p></div>
+
+  if (!processed) return (
+    <div className="page" style={{ alignItems: 'center', justifyContent: 'center' }}>
+      <p style={{ color: 'var(--text-secondary)' }}>Validando arquivos...</p>
+    </div>
+  )
+
   return (
     <div className="page">
       <div className="page-header">
@@ -46,6 +69,7 @@ export default function Validation() {
         <div className="page-title">Validação</div>
         <div style={{ width: 60 }} />
       </div>
+
       {errors.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '40px 0' }}>
           <IconCircleCheck size={48} color="#3B6D11" style={{ marginBottom: 12 }} />
@@ -79,11 +103,17 @@ export default function Validation() {
           </div>
         </div>
       )}
+
       <div style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.5, marginTop: 8 }}>
         {errors.length > 0 ? 'Itens ignorados não entram no cálculo. Um resumo aparecerá ao exportar.' : 'Prossiga para configurar a cobertura mínima.'}
       </div>
+
       <div className="mt-auto">
-        {errors.length === 0 && <button className="btn-primary" onClick={() => navigate('/coverage')}>Configurar cobertura <IconArrowRight size={16} /></button>}
+        {errors.length === 0 && (
+          <button className="btn-primary" onClick={() => navigate('/coverage')}>
+            Configurar cobertura <IconArrowRight size={16} />
+          </button>
+        )}
       </div>
     </div>
   )

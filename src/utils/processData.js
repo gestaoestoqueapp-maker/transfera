@@ -120,9 +120,7 @@ export function calculateResults(systemData, baseData, inventoryByStorage, stora
     const storeCount = countsByStorage[uploadStorages[0]?.id] || 0
     const extra = calculatedQty
 
-    const genderKey = ['FEMININA', 'KIDS', 'UNISSEX'].includes(product.gender)
-      ? 'FEMININA'
-      : 'MASCULINA'
+    const genderKey = product.gender
 
     const target = coverage[genderKey]?.[product.article] || 0
     let replenish = 0

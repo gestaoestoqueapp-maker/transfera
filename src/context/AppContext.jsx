@@ -7,10 +7,7 @@ const defaultStorages = [
   { id: 2, name: 'Estoque extra', active: true, isDefault: true },
 ]
 
-const defaultCoverage = {
-  FEMININA: { SAPATO: 3, BOLSA: 1, CINTO: 0, CARTEIRA: 0, MEIA: 0, MOCHILA: 0, OUTROS: 0 },
-  MASCULINA: { SAPATO: 3, BOLSA: 2, CINTO: 5, CARTEIRA: 5, MEIA: 3, MOCHILA: 2, OUTROS: 0 },
-}
+const defaultCoverage = {}
 
 function loadFromStorage(key, fallback) {
   try {
@@ -31,7 +28,7 @@ export function AppProvider({ children }) {
   const [firstAccess, setFirstAccess] = useState(() => loadFromStorage('transfera_firstAccess', true))
   const [showTutorial, setShowTutorial] = useState(() => loadFromStorage('transfera_showTutorial', true))
   const [storages, setStorages] = useState(() => loadFromStorage('transfera_storages', defaultStorages))
-  const [coverage, setCoverage] = useState(() => loadFromStorage('transfera_coverage', defaultCoverage))
+const [coverage, setCoverage] = useState(() => loadFromStorage('transfera_coverage', defaultCoverage) || {})
 
   const [baseData, setBaseData] = useState([])
   const [systemData, setSystemData] = useState([])
@@ -39,6 +36,8 @@ export function AppProvider({ children }) {
   const [validationErrors, setValidationErrors] = useState([])
   const [ignoredItems, setIgnoredItems] = useState([])
   const [results, setResults] = useState(null)
+  const [availableArticles, setAvailableArticles] = useState([])
+  const [availableGenders, setAvailableGenders] = useState([])
 
   useEffect(() => { saveToStorage('transfera_firstAccess', firstAccess) }, [firstAccess])
   useEffect(() => { saveToStorage('transfera_showTutorial', showTutorial) }, [showTutorial])
@@ -69,6 +68,8 @@ export function AppProvider({ children }) {
       ignoredItems, setIgnoredItems,
       coverage, setCoverage,
       results, setResults,
+      availableArticles, setAvailableArticles,
+      availableGenders, setAvailableGenders,
     }}>
       {children}
     </AppContext.Provider>

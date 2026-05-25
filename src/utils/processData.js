@@ -37,14 +37,15 @@ export function parseBaseData(rawData) {
     if (!row || !row[0]) continue
     const code = String(row[0]).trim()
     const description = String(row[1] || '').trim()
+    const nameColor = String(row[2] || '').trim()
     const barcode = String(row[12] || row[0]).trim()
     const group = String(row[14] || '').trim().toUpperCase()
     const gender = String(row[15] || '').trim().toUpperCase()
     const article = String(row[17] || '').trim().toUpperCase()
 
-    base[code] = { code, description, barcode, group, gender, article }
+    base[code] = { code, description, nameColor, barcode, group, gender, article }
     if (barcode !== code) {
-      base[barcode] = { code, description, barcode, group, gender, article }
+      base[barcode] = { code, description, nameColor, barcode, group, gender, article }
     }
   }
 
@@ -77,11 +78,11 @@ export function parseInventoryTxt(lines, baseData) {
       return
     }
     if (!/^\d+$/.test(clean)) {
-      errors.push({ line: index + 1, value: clean, reason: 'Caractere invalido' })
+      errors.push({ line: index + 1, value: clean, reason: 'Caractere inválido' })
       return
     }
     if (!baseData[clean]) {
-      errors.push({ line: index + 1, value: clean, reason: 'Codigo nao encontrado na base' })
+      errors.push({ line: index + 1, value: clean, reason: 'Código não encontrado na base' })
       return
     }
     counts[clean] = (counts[clean] || 0) + 1
@@ -138,6 +139,7 @@ export function calculateResults(systemData, baseData, inventoryByStorage, stora
       results.push({
         code,
         description: product.description,
+        nameColor: product.nameColor || '',
         gender: product.gender,
         group: product.group,
         article: product.article,
@@ -164,12 +166,26 @@ export function groupResults(results) {
         article: item.article,
         gender: item.gender,
         total: 0,
-        items: [],
+        byProduct: {},
       }
     }
     groups[key].total += item.replenish
-    groups[key].items.push(item)
+
+    const productKey = item.nameColor || item.description.replace(/\s+\S+$/, '').trim()
+    if (!groups[key].byProduct[productKey]) {
+      groups[key].byProduct[productKey] = {
+        key: productKey,
+        name: productKey,
+        total: 0,
+        items: [],
+      }
+    }
+    groups[key].byProduct[productKey].total += item.replenish
+    groups[key].byProduct[productKey].items.push(item)
   })
 
-  return Object.values(groups).sort((a, b) => Math.abs(b.total) - Math.abs(a.total))
+  return Object.values(groups).map(g => ({
+    ...g,
+    items: Object.values(g.byProduct).sort((a, b) => Math.abs(b.total) - Math.abs(a.total)),
+  })).sort((a, b) => Math.abs(b.total) - Math.abs(a.total))
 }

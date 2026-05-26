@@ -1,19 +1,14 @@
+function detectHeaderRow(rows, minCells = 3) {
+  for (let i = 0; i < rows.length; i++) {
+    const filled = (rows[i] || []).filter(c => c !== null && c !== undefined && String(c).trim() !== '').length
+    if (filled >= minCells) return i
+  }
+  return 0
+}
+
 export function parseSystemData(rawData) {
   const products = []
-  let headerRow = -1
-
-  for (let i = 0; i < rawData.length; i++) {
-    const row = rawData[i]
-    if (!row) continue
-    const first = String(row[0] || '').trim().toLowerCase()
-      .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-    if (first === 'codigo') {
-      headerRow = i
-      break
-    }
-  }
-
-  if (headerRow === -1) return products
+  const headerRow = detectHeaderRow(rawData)
 
   for (let i = headerRow + 1; i < rawData.length; i++) {
     const row = rawData[i]
@@ -32,7 +27,9 @@ export function parseBaseData(rawData) {
   const base = {}
   if (!rawData || rawData.length < 2) return base
 
-  for (let i = 1; i < rawData.length; i++) {
+  const headerRow = detectHeaderRow(rawData)
+
+  for (let i = headerRow + 1; i < rawData.length; i++) {
     const row = rawData[i]
     if (!row || !row[0]) continue
     const code = String(row[0]).trim()
@@ -56,7 +53,9 @@ export function parseInventoryExcel(rawData) {
   const counts = {}
   if (!rawData || rawData.length < 2) return counts
 
-  for (let i = 1; i < rawData.length; i++) {
+  const headerRow = detectHeaderRow(rawData)
+
+  for (let i = headerRow + 1; i < rawData.length; i++) {
     const row = rawData[i]
     if (!row || !row[0]) continue
     const barcode = String(row[0]).trim()
@@ -103,7 +102,6 @@ export function calculateResults(systemData, baseData, inventoryByStorage, stora
     const product = baseData[code]
     if (!product || !product.article || !product.gender) return
 
-    // Pula artigos ignorados para este gênero
     const ignoredForGender = safeIgnored[product.gender] || []
     if (ignoredForGender.includes(product.article)) return
 
@@ -124,9 +122,7 @@ export function calculateResults(systemData, baseData, inventoryByStorage, stora
 
     const storeCount = countsByStorage[uploadStorages[0]?.id] || 0
     const extra = calculatedQty
-
     const genderKey = product.gender
-
     const target = coverage[genderKey]?.[product.article] || 0
     let replenish = 0
 

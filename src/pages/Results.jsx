@@ -112,19 +112,41 @@ export default function Results() {
         ))}
       </div>
 
-      <div className="search-row">
+      {/* Linha de busca reorganizada: [filtros] [buscar] [exportar] */}
+      <div className="search-row" style={{ marginBottom: showFilters ? 8 : 10 }}>
+        <button
+          onClick={() => setShowFilters(!showFilters)}
+          style={{
+            width: 36, height: 36, borderRadius: 8,
+            border: '1px solid var(--gray-border)',
+            background: showFilters ? 'var(--blue-light)' : 'var(--gray-bg)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
+            flexShrink: 0
+          }}
+        >
+          <IconAdjustmentsHorizontal size={16} color={showFilters ? '#185FA5' : '#999'} />
+        </button>
         <div style={{ position: 'relative', flex: 1 }}>
           <IconSearch size={14} color="#999" style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)' }} />
           <input
             className="search-input"
-            style={{ paddingLeft: 30 }}
+            style={{ paddingLeft: 30, width: '100%' }}
             placeholder="Buscar produto..."
             value={search}
             onChange={e => setSearch(e.target.value)}
           />
         </div>
-        <button onClick={() => setShowFilters(!showFilters)} style={{ width: 36, height: 36, borderRadius: 8, border: '1px solid var(--gray-border)', background: showFilters ? 'var(--blue-light)' : 'var(--gray-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-          <IconAdjustmentsHorizontal size={16} color={showFilters ? '#185FA5' : '#999'} />
+        <button
+          onClick={() => navigate('/export')}
+          style={{
+            width: 36, height: 36, borderRadius: 8,
+            border: '1px solid var(--gray-border)',
+            background: 'var(--gray-bg)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
+            flexShrink: 0
+          }}
+        >
+          <IconArrowRight size={16} color="#185FA5" />
         </button>
       </div>
 
@@ -221,12 +243,6 @@ export default function Results() {
             </div>
           )
         })}
-      </div>
-
-      <div className="mt-auto" style={{ paddingTop: 12 }}>
-        <button className="btn-primary" onClick={() => navigate('/export')}>
-          Exportar <IconArrowRight size={16} />
-        </button>
       </div>
     </div>
   )

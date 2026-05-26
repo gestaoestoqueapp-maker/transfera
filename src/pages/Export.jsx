@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { IconArrowLeft, IconFileSpreadsheet, IconFileText, IconDownload, IconAlertCircle, IconChevronDown, IconChevronUp } from '@tabler/icons-react'
+import { IconArrowLeft, IconFileSpreadsheet, IconFileText, IconDownload, IconAlertCircle, IconChevronDown, IconChevronUp, IconRefresh } from '@tabler/icons-react'
 import { useApp } from '../context/AppContext'
 import { exportToExcel } from '../utils/exportExcel'
 import { exportToPdf } from '../utils/exportPdf'
@@ -19,7 +19,6 @@ export default function Export() {
   )
 
   const { grouped } = results
-
   const allGroupKeys = grouped.map(g => g.key)
 
   const initSelected = () => {
@@ -28,7 +27,7 @@ export default function Export() {
       allGroupKeys.forEach(k => sel[k] = true)
       setSelectedGroups(sel)
     }
-    setShowPdfPreview(true)
+    setShowPdfPreview(prev => !prev)
   }
 
   const toggleGroup = (key) => {
@@ -60,9 +59,14 @@ export default function Export() {
         <div style={{ width: 60 }} />
       </div>
 
-      <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 20, lineHeight: 1.5 }}>
-        Escolha o formato para exportar a lista de reposição.
-      </p>
+      {/* Nova reposição no topo */}
+      <button
+        className="btn-secondary"
+        style={{ marginBottom: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
+        onClick={() => navigate('/home')}
+      >
+        <IconRefresh size={14} /> Nova reposição
+      </button>
 
       <button className="export-btn" onClick={() => exportToExcel(results, coverage)}>
         <div className="export-icon" style={{ background: 'var(--green-light)' }}>
@@ -124,20 +128,15 @@ export default function Export() {
                   key={group.key}
                   onClick={() => toggleGroup(group.key)}
                   style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 10,
-                    padding: '8px 4px',
-                    borderBottom: '1px solid var(--gray-border)',
-                    cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', gap: 10,
+                    padding: '8px 4px', borderBottom: '1px solid var(--gray-border)', cursor: 'pointer',
                   }}
                 >
                   <div style={{
                     width: 18, height: 18, borderRadius: 4,
                     border: '1px solid ' + (isSelected ? '#185FA5' : 'var(--gray-border)'),
                     background: isSelected ? '#185FA5' : 'transparent',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    flexShrink: 0,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
                   }}>
                     {isSelected && <span style={{ color: '#fff', fontSize: 11, fontWeight: 700 }}>✓</span>}
                   </div>
@@ -183,10 +182,6 @@ export default function Export() {
           )}
         </div>
       )}
-
-      <div className="mt-auto" style={{ paddingTop: 16 }}>
-        <button className="btn-secondary" onClick={() => navigate('/home')}>Nova reposição</button>
-      </div>
     </div>
   )
 }

@@ -11,21 +11,41 @@ export default function Coverage() {
     systemData, inventoryData, storages,
     baseData, setResults,
     availableArticles, availableGenders,
+    articlesByGender,
+    ignoredArticles, setIgnoredArticles,
   } = useApp()
 
   const [activeGender, setActiveGender] = useState(null)
 
   const safeCoverage = coverage || {}
+  const safeIgnored = ignoredArticles || {}
 
   const genders = availableGenders.length > 0
     ? availableGenders
     : ['FEMININA', 'MASCULINA']
 
-  const articles = availableArticles.length > 0
-    ? availableArticles
-    : ['SAPATO', 'BOLSA', 'CINTO', 'CARTEIRA', 'MEIA', 'MOCHILA', 'OUTROS']
-
   const activeTab = activeGender || genders[0]
+
+  const articles = articlesByGender[activeTab]
+    || availableArticles
+    || ['SAPATO', 'BOLSA', 'CINTO', 'CARTEIRA', 'MEIA', 'MOCHILA', 'OUTROS']
+
+  const isArticleActive = (gender, article) => {
+    if (!safeIgnored[gender]) return true
+    return !safeIgnored[gender].includes(article)
+  }
+
+  const toggleArticle = (gender, article) => {
+    setIgnoredArticles(prev => {
+      const p = prev || {}
+      const list = p[gender] || []
+      if (list.includes(article)) {
+        return { ...p, [gender]: list.filter(a => a !== article) }
+      } else {
+        return { ...p, [gender]: [...list, article] }
+      }
+    })
+  }
 
   const updateCoverage = (gender, article, delta) => {
     setCoverage(prev => {
@@ -65,7 +85,7 @@ export default function Coverage() {
       inventoryByStorage[storage.id] = counts
     })
 
-    const raw = calculateResults(systemParsed, base, inventoryByStorage, storages, safeCoverage)
+    const raw = calculateResults(systemParsed, base, inventoryByStorage, storages, safeCoverage, safeIgnored)
     const grouped = groupResults(raw)
     setResults({ raw, grouped })
     navigate('/results')
@@ -98,21 +118,72 @@ export default function Coverage() {
       </div>
 
       <div style={{ background: 'var(--gray-bg)', borderRadius: 10, padding: '4px 12px', marginBottom: 10 }}>
-        {articles.map(article => (
-          <div className="coverage-row" key={article}>
-            <span className="coverage-name">
-              {article.charAt(0) + article.slice(1).toLowerCase()}
-            </span>
-            <div className="qty-control">
-              <button className="qty-btn" onClick={() => updateCoverage(activeTab, article, -1)}>−</button>
-              <span className="qty-value">{safeCoverage[activeTab]?.[article] || 0}</span>
-              <button className="qty-btn" onClick={() => updateCoverage(activeTab, article, 1)}>+</button>
-              <button onClick={() => clearArticle(activeTab, article)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#999', marginLeft: 4, display: 'flex', alignItems: 'center' }}>
-                <IconX size={13} />
-              </button>
+        {articles.map(article => {
+          const active = isArticleActive(activeTab, article)
+          return (
+            <div
+              className="coverage-row"
+              key={article}
+              style={{ opacity: active ? 1 : 0.4 }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1 }}>
+                <button
+                  onClick={() => toggleArticle(activeTab, article)}
+                  style={{
+                    width: 36,
+                    height: 20,
+                    borderRadius: 10,
+                    border: 'none',
+                    cursor: 'pointer',
+                    background: active ? '#185FA5' : '#ccc',
+                    position: 'relative',
+                    flexShrink: 0,
+                    transition: 'background 0.2s',
+                  }}
+                >
+                  <span style={{
+                    position: 'absolute',
+                    top: 2,
+                    left: active ? 18 : 2,
+                    width: 16,
+                    height: 16,
+                    borderRadius: '50%',
+                    background: '#fff',
+                    transition: 'left 0.2s',
+                  }} />
+                </button>
+                <span className="coverage-name">
+                  {article.charAt(0) + article.slice(1).toLowerCase()}
+                </span>
+              </div>
+              <div className="qty-control">
+                <button className="qty-btn" onClick={() => updateCoverage(activeTab, article, -1)} disabled={!active}>−</button>
+                <input
+                  type="number"
+                  min="0"
+                  value={safeCoverage[activeTab]?.[article] || 0}
+                  disabled={!active}
+                  onChange={e => {
+                    const val = parseInt(e.target.value) || 0
+                    setCoverage(prev => {
+                      const p = prev || {}
+                      return { ...p, [activeTab]: { ...(p[activeTab] || {}), [article]: Math.max(0, val) } }
+                    })
+                  }}
+                  style={{
+                    width: 44, textAlign: 'center', border: '1px solid var(--gray-border)',
+                    borderRadius: 6, padding: '3px 4px', fontSize: 14, fontWeight: 500,
+                    color: 'var(--text-primary)', background: 'var(--gray-bg)'
+                  }}
+                />
+                <button className="qty-btn" onClick={() => updateCoverage(activeTab, article, 1)} disabled={!active}>+</button>
+                <button onClick={() => clearArticle(activeTab, article)} disabled={!active} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#999', marginLeft: 4, display: 'flex', alignItems: 'center' }}>
+                  <IconX size={13} />
+                </button>
+              </div>
             </div>
-          </div>
-        ))}
+          )
+        })}
       </div>
 
       <button onClick={clearAll} style={{ width: '100%', padding: '8px', background: 'transparent', border: '1px solid var(--gray-border)', borderRadius: 8, fontSize: 13, color: 'var(--text-secondary)', cursor: 'pointer', marginBottom: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>

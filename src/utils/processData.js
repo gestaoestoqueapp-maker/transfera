@@ -91,8 +91,9 @@ export function parseInventoryTxt(lines, baseData) {
   return { counts, errors }
 }
 
-export function calculateResults(systemData, baseData, inventoryByStorage, storages, coverage) {
+export function calculateResults(systemData, baseData, inventoryByStorage, storages, coverage, ignoredArticles) {
   const results = []
+  const safeIgnored = ignoredArticles || {}
 
   const activeStorages = storages.filter(s => s.active)
   const uploadStorages = activeStorages.slice(0, -1)
@@ -101,6 +102,10 @@ export function calculateResults(systemData, baseData, inventoryByStorage, stora
   systemData.forEach(({ code, saldo }) => {
     const product = baseData[code]
     if (!product || !product.article || !product.gender) return
+
+    // Pula artigos ignorados para este gênero
+    const ignoredForGender = safeIgnored[product.gender] || []
+    if (ignoredForGender.includes(product.article)) return
 
     const countsByStorage = {}
     let totalCounted = 0

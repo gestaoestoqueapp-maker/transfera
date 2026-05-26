@@ -28,7 +28,8 @@ export function AppProvider({ children }) {
   const [firstAccess, setFirstAccess] = useState(() => loadFromStorage('transfera_firstAccess', true))
   const [showTutorial, setShowTutorial] = useState(() => loadFromStorage('transfera_showTutorial', true))
   const [storages, setStorages] = useState(() => loadFromStorage('transfera_storages', defaultStorages))
-const [coverage, setCoverage] = useState(() => loadFromStorage('transfera_coverage', defaultCoverage) || {})
+  const [coverage, setCoverage] = useState(() => loadFromStorage('transfera_coverage', defaultCoverage) || {})
+  const [ignoredArticles, setIgnoredArticles] = useState(() => loadFromStorage('transfera_ignoredArticles', {}))
 
   const [baseData, setBaseData] = useState([])
   const [systemData, setSystemData] = useState([])
@@ -38,11 +39,13 @@ const [coverage, setCoverage] = useState(() => loadFromStorage('transfera_covera
   const [results, setResults] = useState(null)
   const [availableArticles, setAvailableArticles] = useState([])
   const [availableGenders, setAvailableGenders] = useState([])
+  const [articlesByGender, setArticlesByGender] = useState({})
 
   useEffect(() => { saveToStorage('transfera_firstAccess', firstAccess) }, [firstAccess])
   useEffect(() => { saveToStorage('transfera_showTutorial', showTutorial) }, [showTutorial])
   useEffect(() => { saveToStorage('transfera_storages', storages) }, [storages])
   useEffect(() => { saveToStorage('transfera_coverage', coverage) }, [coverage])
+  useEffect(() => { saveToStorage('transfera_ignoredArticles', ignoredArticles) }, [ignoredArticles])
 
   const addStorage = (name) => {
     setStorages(prev => [...prev, { id: Date.now(), name, active: false, isDefault: false }])
@@ -70,6 +73,8 @@ const [coverage, setCoverage] = useState(() => loadFromStorage('transfera_covera
       results, setResults,
       availableArticles, setAvailableArticles,
       availableGenders, setAvailableGenders,
+      articlesByGender, setArticlesByGender,
+      ignoredArticles, setIgnoredArticles,
     }}>
       {children}
     </AppContext.Provider>

@@ -7,11 +7,12 @@ import { parseBaseData, parseInventoryTxt, parseInventoryExcel } from '../utils/
 export default function Validation() {
   const navigate = useNavigate()
   const {
-    systemData, inventoryData, storages,
-    baseData, setBaseData,
-    setValidationErrors, setIgnoredItems,
-    setAvailableArticles, setAvailableGenders,
-  } = useApp()
+  systemData, inventoryData, storages,
+  baseData, setBaseData,
+  setValidationErrors, setIgnoredItems,
+  setAvailableArticles, setAvailableGenders,
+  setArticlesByGender,
+} = useApp()
 
   const [errors, setErrors] = useState([])
   const [showAll, setShowAll] = useState(false)
@@ -26,7 +27,17 @@ export default function Validation() {
       const genders = [...new Set(Object.values(base).map(p => p.gender).filter(Boolean))]
       setAvailableArticles(articles.sort())
       setAvailableGenders(genders.sort())
-
+      const artsByGender = {}
+            Object.values(base).forEach(p => {
+              if (!p.gender || !p.article) return
+              if (!artsByGender[p.gender]) artsByGender[p.gender] = new Set()
+              artsByGender[p.gender].add(p.article)
+            })
+            const artsByGenderSorted = {}
+            Object.keys(artsByGender).forEach(g => {
+              artsByGenderSorted[g] = [...artsByGender[g]].sort()
+            })
+            setArticlesByGender(artsByGenderSorted)
       const allErrors = []
       const activeStorages = storages.filter(s => s.active)
       const uploadStorages = activeStorages.slice(0, -1)
